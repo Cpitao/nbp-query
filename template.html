@@ -1,0 +1,39 @@
+<script>
+    function submitForm() {
+        var form = document.forms['convertform'];
+        var gbpChild = form['gbp'];
+        var plnChild = form['pln'];
+
+        gbpChild.value = gbpChild.value.replace(',', '.');
+        plnChild.value = plnChild.value.replace(',', '.');
+
+        console.log(gbpChild.value + ' ' + plnChild.value);
+        
+        if(gbpChild.value != '' && !isNaN(+(gbpChild.value)))
+        {
+            form.removeChild(plnChild);
+        }
+        else
+        {
+            form.removeChild(gbpChild);
+        }
+        console.log('A');
+        console.log(plnChild.value);
+        form.submit();
+    }
+</script>
+
+<h1>Currency converter</h1>
+<form name="convertform" method="GET">
+    <label type="text">You send (GBP):</label><br />
+    <input type="text" name="gbp" value="{{.Gbps}}"><br />
+    <label type="text">They receive (PLN):</label><br />
+    <input type="text" name="pln" value="{{.Plns}}"><br />
+    <input type="button" value="Convert" onclick="submitForm();">
+</form>
+{{if .IsRate}}
+<p>1 GBP = <b>{{.Rate}} PLN</b></p>
+{{end}}
+{{if .IsError}}
+<p>{{.Error}}</p>
+{{end}}
