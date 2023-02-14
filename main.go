@@ -24,20 +24,20 @@ func main() {
 			Error         string
 		}{"GBP", "", "", false, "", false, ""} // default values
 
+		inValueString := r.FormValue("other")
+		plnString := r.FormValue("pln")
+
+		if inValueString == "" && plnString == "" {
+			tmpl.Execute(w, data)
+			return
+		}
+
+		// Check currency type format (3 letters)
 		currencyTypeString := strings.ToLower(r.FormValue("type"))
 		currencyRegex, _ := regexp.Compile("^[a-z]{3}$")
 		if !currencyRegex.MatchString(currencyTypeString) {
 			data.IsError = true
 			data.Error = "Invalid currency type format"
-			tmpl.Execute(w, data)
-			return
-		}
-
-		inValueString := r.FormValue("other")
-		plnString := r.FormValue("pln")
-		fmt.Printf("%s %s %s", currencyTypeString, inValueString, plnString)
-
-		if inValueString == "" && plnString == "" {
 			tmpl.Execute(w, data)
 			return
 		}
@@ -88,7 +88,7 @@ func main() {
 		}
 
 		data.IsRate = true
-		data.Rate = fmt.Sprintf("%.2f", rate)
+		data.Rate = fmt.Sprintf("%.3f", rate)
 		data.CurrencyType = strings.ToUpper(currencyTypeString)
 
 		tmpl.Execute(w, data)

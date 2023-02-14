@@ -27,7 +27,6 @@ type NbpARate struct { // structure to hold table A type of data
 
 func getNbpARate(target string) (NbpARate, error) {
 	queryUrl := fmt.Sprintf("http://api.nbp.pl/api/exchangerates/rates/a/%s/?format=json", target)
-	fmt.Printf("%s\n", queryUrl)
 	resp, err := http.Get(queryUrl)
 	if err != nil {
 		return NbpARate{}, err
@@ -58,6 +57,4 @@ func (v Currency) convert(target string) (Currency, float64) {
 	} else {
 		return Currency{"pln", math.Round(100*v.Value*nbpRate.Rate[0].Mid) / 100}, nbpRate.Rate[0].Mid
 	}
-
-	return Currency{}, -1
 }
