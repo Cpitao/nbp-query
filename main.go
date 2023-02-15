@@ -1,11 +1,10 @@
-package main
+package application
 
 import (
 	"fmt"
 	"html/template"
 	"math"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -13,7 +12,7 @@ import (
 func main() {
 	tmpl := template.Must(template.ParseFiles("template.html"))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		data := struct {
 			CurrencyType  string
 			CurrencyCount string
@@ -24,28 +23,26 @@ func main() {
 			Error         string
 		}{"GBP", "", "", false, "", false, ""} // default values
 
-		inValueString := r.FormValue("other")
-		plnString := r.FormValue("pln")
+		otherCurrencyValue := request.FormValue("other")
+		plnValue := request.FormValue("pln")
 
-		if inValueString == "" && plnString == "" {
-			tmpl.Execute(w, data)
+		if otherCurrencyValue == "" && plnValue == "" {
+			tmpl.Execute(writer, data)
 			return
 		}
 
-		// Check currency type format (3 letters)
-		currencyTypeString := strings.ToLower(r.FormValue("type"))
-		currencyRegex, _ := regexp.Compile("^[a-z]{3}$")
-		if !currencyRegex.MatchString(currencyTypeString) {
+		currencyCode := request.FormValue("type")
+		if !verifyCurrencyCode(currencyCode) {
 			data.IsError = true
 			data.Error = "Invalid currency type format"
-			tmpl.Execute(w, data)
+			tmpl.Execute(writer, data)
 			return
 		}
 
-		if inValueString != "" && plnString != "" { // handled client-side in the first place
+		if otherCurrencyValue != "" && plnValue != "" {
 			data.IsError = true
 			data.Error = "One field must remain empty"
-			tmpl.Execute(w, data)
+			tmpl.Execute(writer, data)
 			return
 		}
 
@@ -53,29 +50,29 @@ func main() {
 		var value float64
 		var err error
 
-		if inValueString != "" {
-			currencyType = currencyTypeString
-			value, err = strconv.ParseFloat(inValueString, 64)
+		if otherCurrencyValue != "" {
+			currencyType = currencyCode
+			value, err = strconv.ParseFloat(otherCurrencyValue, 64)
 		} else {
 			currencyType = "pln"
-			value, err = strconv.ParseFloat(plnString, 64)
+			value, err = strconv.ParseFloat(plnValue, 64)
 		}
 
 		if err != nil || value < 0 {
 			data.IsError = true
 			data.Error = "Invalid value"
-			tmpl.Execute(w, data)
+			tmpl.Execute(writer, data)
 			return
 		}
 
 		value = math.Round(100*value) / 100
 		inputCurrency := Currency{currencyType, value}
-		outputCurrency, rate := inputCurrency.convert(currencyTypeString)
+		outputCurrency, rate := exchangeCurrency(inputCurrency, currencyCode)
 
 		if rate < 0 {
 			data.IsError = true
 			data.Error = "Unable to convert values"
-			tmpl.Execute(w, data)
+			tmpl.Execute(writer, data)
 			return
 		}
 
@@ -88,10 +85,10 @@ func main() {
 		}
 
 		data.IsRate = true
-		data.Rate = fmt.Sprintf("%.3f", rate)
-		data.CurrencyType = strings.ToUpper(currencyTypeString)
+		data.Rate = fmt.Sprintf("%.4f", rate)
+		data.CurrencyType = strings.ToUpper(currencyCode)
 
-		tmpl.Execute(w, data)
+		tmpl.Execute(writer, data)
 	})
 
 	http.ListenAndServe(":80", nil)
