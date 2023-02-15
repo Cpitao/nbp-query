@@ -1,4 +1,4 @@
-package application
+package nbp
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ type NbpARate struct { // structure to hold table A type of data
 	Rate     []ARate `json:"rates"`
 }
 
-func queryNbpRate(target string) (NbpARate, error) {
+func QueryNbpRate(target string) (NbpARate, error) {
 	queryUrl := fmt.Sprintf("http://api.nbp.pl/api/exchangerates/rates/a/%s/?format=json", target)
 	resp, err := http.Get(queryUrl)
 	if err != nil {
@@ -54,8 +54,8 @@ func (c Currency) convert(target string, rate float64) Currency {
 	}
 }
 
-func exchangeCurrency(c Currency, target string) (Currency, float64) {
-	rate, err := queryNbpRate(target)
+func ExchangeCurrency(c Currency, target string) (Currency, float64) {
+	rate, err := QueryNbpRate(target)
 	if err != nil {
 		return Currency{}, -1
 	}
@@ -63,7 +63,7 @@ func exchangeCurrency(c Currency, target string) (Currency, float64) {
 	return c.convert(target, rate.Rate[0].Mid), rate.Rate[0].Mid
 }
 
-func verifyCurrencyCode(code string) bool {
+func VerifyCurrencyCode(code string) bool {
 	code = strings.ToLower(code)
 	currencyRegex, _ := regexp.Compile("^[a-z]{3}$")
 	return currencyRegex.MatchString(code)

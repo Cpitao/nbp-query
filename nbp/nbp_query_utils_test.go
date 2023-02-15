@@ -1,4 +1,4 @@
-package application
+package nbp
 
 import (
 	"math"
@@ -49,7 +49,7 @@ var verifyCurrencyCodeTests = []VerifyCurrencyCodeTest{
 
 func TestVerifyCurrencyCode(t *testing.T) {
 	for _, test := range verifyCurrencyCodeTests {
-		out := verifyCurrencyCode(test.code)
+		out := VerifyCurrencyCode(test.code)
 		if out != test.expected {
 			t.Errorf("Output %t not equal %t for %s", out, test.expected, test.code)
 		}

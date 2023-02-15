@@ -1,9 +1,10 @@
-package application
+package main
 
 import (
 	"fmt"
 	"html/template"
 	"math"
+	nbp "nbp_query/nbp"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,7 +33,7 @@ func main() {
 		}
 
 		currencyCode := request.FormValue("type")
-		if !verifyCurrencyCode(currencyCode) {
+		if !nbp.VerifyCurrencyCode(currencyCode) {
 			data.IsError = true
 			data.Error = "Invalid currency type format"
 			tmpl.Execute(writer, data)
@@ -66,8 +67,8 @@ func main() {
 		}
 
 		value = math.Round(100*value) / 100
-		inputCurrency := Currency{currencyType, value}
-		outputCurrency, rate := exchangeCurrency(inputCurrency, currencyCode)
+		inputCurrency := nbp.Currency{Name: currencyType, Value: value}
+		outputCurrency, rate := nbp.ExchangeCurrency(inputCurrency, currencyCode)
 
 		if rate < 0 {
 			data.IsError = true
